@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linux-health-check"
+version = "0.1.0"
+description = "Dependency-free health check for Linux servers: CPU, memory, disk/inodes, systemd services, listening ports and boot time."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Richard Luciano Garcia" }]
+keywords = ["linux", "monitoring", "sysadmin", "health-check", "systemd"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Monitoring",
+]
+
+[project.scripts]
+linux-health-check = "linux_health_check.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
