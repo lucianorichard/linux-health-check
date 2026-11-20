@@ -1,0 +1,4 @@
+/dev/vda1 / ext4 rw,relatime 0 0
+/dev/vdb1 /var xfs rw,relatime 0 0
+/dev/vdc1 /mnt/secure ext4 rw,relatime 0 0
+tmpfs /dev/shm tmpfs rw 0 0

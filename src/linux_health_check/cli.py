@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from typing import List, Optional
 
 from . import __version__
 from .checks import CHECKS, run_checks
@@ -36,26 +35,42 @@ def build_parser() -> argparse.ArgumentParser:
         "inodes, systemd services, listening ports and last boot.",
         epilog="Exit codes: 0 OK, 1 WARNING, 2 CRITICAL, 3 UNKNOWN or usage/config error.",
     )
-    parser.add_argument("-c", "--config", metavar="FILE", help="JSON file with thresholds and expectations")
     parser.add_argument(
-        "--check", action="append", choices=list(CHECKS), metavar="NAME",
+        "-c", "--config", metavar="FILE", help="JSON file with thresholds and expectations"
+    )
+    parser.add_argument(
+        "--check",
+        action="append",
+        choices=list(CHECKS),
+        metavar="NAME",
         help=f"run only this check (repeatable): {', '.join(CHECKS)}",
     )
     parser.add_argument(
-        "-s", "--service", action="append", default=[], metavar="UNIT",
+        "-s",
+        "--service",
+        action="append",
+        default=[],
+        metavar="UNIT",
         help="systemd unit that must be active (repeatable, added to the config)",
     )
     parser.add_argument(
-        "-p", "--expect-port", action="append", default=[], metavar="PORT[/PROTO]",
+        "-p",
+        "--expect-port",
+        action="append",
+        default=[],
+        metavar="PORT[/PROTO]",
         help="port that must be listening, e.g. 22 or 53/udp (repeatable)",
     )
     output = parser.add_mutually_exclusive_group()
-    output.add_argument("--json", action="store_true", help="print the report as JSON instead of text")
+    output.add_argument(
+        "--json", action="store_true", help="print the report as JSON instead of text"
+    )
     output.add_argument("-q", "--quiet", action="store_true", help="print a single summary line")
     parser.add_argument("-o", "--output", metavar="FILE", help="also write the JSON report to FILE")
     parser.add_argument("--no-color", action="store_true", help="disable colored output")
     parser.add_argument(
-        "--fixture", metavar="DIR",
+        "--fixture",
+        metavar="DIR",
         help="read a captured system from DIR instead of this host (demos and tests)",
     )
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
@@ -71,11 +86,13 @@ def _fail(message: str) -> int:
     return int(Status.UNKNOWN)
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         config = load_config(args.config)
-        config["services"]["units"] += [u for u in args.service if u not in config["services"]["units"]]
+        config["services"]["units"] += [
+            u for u in args.service if u not in config["services"]["units"]
+        ]
         config["ports"]["expected"] += args.expect_port
         validate(config)  # again, CLI values can be invalid too (e.g. --expect-port 99999)
     except ConfigError as exc:

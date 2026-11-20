@@ -9,7 +9,6 @@ from __future__ import annotations
 import ipaddress
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 _CPU_N = re.compile(r"^cpu\d+\s")
 _OCTAL_ESCAPE = re.compile(r"\\([0-7]{3})")
@@ -34,7 +33,7 @@ class Listener:
     inode: int
 
 
-def parse_key_values(text: str) -> Dict[str, str]:
+def parse_key_values(text: str) -> dict[str, str]:
     """Parse KEY=VALUE lines (the output format of `systemctl show`)."""
     result = {}
     for line in text.splitlines():
@@ -44,7 +43,7 @@ def parse_key_values(text: str) -> Dict[str, str]:
     return result
 
 
-def parse_meminfo(text: str) -> Dict[str, int]:
+def parse_meminfo(text: str) -> dict[str, int]:
     """Return /proc/meminfo as {field: value_in_kB}."""
     result = {}
     for line in text.splitlines():
@@ -55,7 +54,7 @@ def parse_meminfo(text: str) -> Dict[str, int]:
     return result
 
 
-def parse_cpu_times(stat_text: str) -> Tuple[int, int]:
+def parse_cpu_times(stat_text: str) -> tuple[int, int]:
     """Return (idle, total) jiffies from the aggregate "cpu" line of /proc/stat.
 
     idle includes iowait. total uses the first 8 fields only: guest and
@@ -85,7 +84,7 @@ def parse_btime(stat_text: str) -> int:
     raise ValueError("no 'btime' line in /proc/stat")
 
 
-def parse_loadavg(text: str) -> Tuple[float, float, float]:
+def parse_loadavg(text: str) -> tuple[float, float, float]:
     """Return the 1, 5 and 15 minute load averages from /proc/loadavg."""
     fields = text.split()
     if len(fields) < 3:
@@ -106,7 +105,7 @@ def _unescape(value: str) -> str:
     return _OCTAL_ESCAPE.sub(lambda m: chr(int(m.group(1), 8)), value)
 
 
-def parse_mounts(text: str) -> List[Mount]:
+def parse_mounts(text: str) -> list[Mount]:
     """Parse /proc/self/mounts."""
     mounts = []
     for line in text.splitlines():
@@ -120,12 +119,12 @@ def _decode_address(hex_addr: str, ipv6: bool) -> str:
     raw = bytes.fromhex(hex_addr)
     if ipv6:
         # Four 32-bit words, each in host (little-endian) byte order.
-        raw = b"".join(raw[i:i + 4][::-1] for i in range(0, 16, 4))
+        raw = b"".join(raw[i : i + 4][::-1] for i in range(0, 16, 4))
         return str(ipaddress.IPv6Address(raw))
     return str(ipaddress.IPv4Address(raw[::-1]))
 
 
-def parse_proc_net(text: str, proto: str) -> List[Listener]:
+def parse_proc_net(text: str, proto: str) -> list[Listener]:
     """Return listening sockets from /proc/net/<proto>.
 
     proto is one of tcp, tcp6, udp, udp6. TCP sockets count when in LISTEN

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from enum import IntEnum
-from typing import Iterable
 
 
 class Status(IntEnum):

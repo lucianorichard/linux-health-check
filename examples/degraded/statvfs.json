@@ -1,0 +1,5 @@
+{
+  "/": {"blocks": 10000000, "bfree": 4000000, "bavail": 3500000, "frsize": 4096, "files": 1000000, "ffree": 150000},
+  "/var": {"blocks": 1000000, "bfree": 70000, "bavail": 70000, "frsize": 4096, "files": 500000, "ffree": 400000},
+  "/mnt/secure": "permission_denied"
+}

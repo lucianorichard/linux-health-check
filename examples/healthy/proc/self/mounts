@@ -1,0 +1,6 @@
+/dev/sda1 / ext4 rw,relatime 0 0
+proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0
+tmpfs /run tmpfs rw,nosuid,nodev,size=800000k,mode=755 0 0
+/dev/sda2 /home ext4 rw,relatime 0 0
+/dev/sdb1 /mnt/backup\040disk ext4 rw,relatime 0 0
+/dev/loop0 /snap/core/123 squashfs ro 0 0

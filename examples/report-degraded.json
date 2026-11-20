@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "tool": {
+    "name": "linux-health-check",
+    "version": "0.1.0"
+  },
+  "host": {
+    "hostname": "db02.example.com",
+    "kernel": "6.1.0-27-amd64"
+  },
+  "generated_at": "2026-11-20T01:43:06+00:00",
+  "overall": "CRITICAL",
+  "exit_code": 2,
+  "checks": [
+    {
+      "name": "cpu",
+      "status": "CRITICAL",
+      "summary": "usage 96.0%, load 1.73/core (5m), 4 cores",
+      "details": [
+        "load average 1m/5m/15m: 7.80 6.90 5.10",
+        "5m load per core 1.73 (warn 1.00)",
+        "CPU usage 96.0% (crit 95%)"
+      ],
+      "metrics": {
+        "usage_percent": 96.0,
+        "cores": 4,
+        "load1": 7.8,
+        "load5": 6.9,
+        "load15": 5.1,
+        "load5_per_core": 1.73
+      },
+      "notes": []
+    },
+    {
+      "name": "memory",
+      "status": "WARNING",
+      "summary": "used 88.0% (warn 85%), swap 70.0% (warn 50%)",
+      "details": [
+        "available 1875 MiB of 15625 MiB"
+      ],
+      "metrics": {
+        "total_kib": 16000000,
+        "available_kib": 1920000,
+        "used_percent": 88.0,
+        "swap_total_kib": 4000000,
+        "swap_used_percent": 70.0
+      },
+      "notes": []
+    },
+    {
+      "name": "disk",
+      "status": "CRITICAL",
+      "summary": "2 filesystems checked; attention: /, /var",
+      "details": [
+        "/ (ext4): space 63.2%, inodes 85.0% (warn 80%)",
+        "/var (xfs): space 93.0% (crit 90%), inodes 20.0%",
+        "/mnt/secure: permission denied"
+      ],
+      "metrics": {
+        "filesystems": [
+          {
+            "mountpoint": "/",
+            "device": "/dev/vda1",
+            "fstype": "ext4",
+            "size_bytes": 40960000000,
+            "available_bytes": 14336000000,
+            "space_used_percent": 63.2,
+            "inodes_used_percent": 85.0,
+            "status": "WARNING"
+          },
+          {
+            "mountpoint": "/var",
+            "device": "/dev/vdb1",
+            "fstype": "xfs",
+            "size_bytes": 4096000000,
+            "available_bytes": 286720000,
+            "space_used_percent": 93.0,
+            "inodes_used_percent": 20.0,
+            "status": "CRITICAL"
+          }
+        ]
+      },
+      "notes": [
+        "cannot stat /mnt/secure: permission denied; run with sudo for complete data"
+      ]
+    },
+    {
+      "name": "services",
+      "status": "CRITICAL",
+      "summary": "2/3 healthy; problems: nginx.service",
+      "details": [
+        "ssh.service: active (running)",
+        "cron.service: active (running)",
+        "nginx.service: failed"
+      ],
+      "metrics": {
+        "units": {
+          "ssh.service": {
+            "status": "OK",
+            "LoadState": "loaded",
+            "ActiveState": "active",
+            "SubState": "running"
+          },
+          "cron.service": {
+            "status": "OK",
+            "LoadState": "loaded",
+            "ActiveState": "active",
+            "SubState": "running"
+          },
+          "nginx.service": {
+            "status": "CRITICAL",
+            "LoadState": "loaded",
+            "ActiveState": "failed",
+            "SubState": "failed"
+          }
+        }
+      },
+      "notes": []
+    },
+    {
+      "name": "ports",
+      "status": "CRITICAL",
+      "summary": "4 listening ports; missing: 443/tcp; not allowed: 8080/tcp",
+      "details": [
+        "22/tcp: 0.0.0.0 sshd(812)",
+        "123/udp: 0.0.0.0 ?",
+        "5432/tcp: 127.0.0.1 postgres(901)",
+        "8080/tcp: 0.0.0.0 ?"
+      ],
+      "metrics": {
+        "listening": [
+          {
+            "port": 22,
+            "proto": "tcp",
+            "bindings": [
+              "0.0.0.0 sshd(812)"
+            ]
+          },
+          {
+            "port": 123,
+            "proto": "udp",
+            "bindings": [
+              "0.0.0.0 ?"
+            ]
+          },
+          {
+            "port": 5432,
+            "proto": "tcp",
+            "bindings": [
+              "127.0.0.1 postgres(901)"
+            ]
+          },
+          {
+            "port": 8080,
+            "proto": "tcp",
+            "bindings": [
+              "0.0.0.0 ?"
+            ]
+          }
+        ],
+        "missing": [
+          "443/tcp"
+        ],
+        "not_allowed": [
+          "8080/tcp"
+        ]
+      },
+      "notes": [
+        "owner unknown for 2 sockets; 3 processes not readable; run with sudo for complete data"
+      ]
+    },
+    {
+      "name": "boot",
+      "status": "WARNING",
+      "summary": "last boot 2026-11-18 11:06 UTC, up 7m",
+      "details": [
+        "rebooted less than 15 minutes ago"
+      ],
+      "metrics": {
+        "boot_time": "2026-11-18T11:06:40+00:00",
+        "uptime_seconds": 420
+      },
+      "notes": []
+    }
+  ]
+}

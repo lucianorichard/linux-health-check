@@ -5,14 +5,14 @@ No I/O happens here, so every rule is unit-tested in isolation.
 
 from __future__ import annotations
 
-from typing import Iterable, List, Optional, Set, Tuple
+from collections.abc import Iterable
 
 from .status import Status
 
-PortSpec = Tuple[int, str]  # (port, "tcp" | "udp")
+PortSpec = tuple[int, str]  # (port, "tcp" | "udp")
 
 
-def threshold_status(value: Optional[float], warn: Optional[float], crit: Optional[float]) -> Status:
+def threshold_status(value: float | None, warn: float | None, crit: float | None) -> Status:
     """Higher is worse. Reaching a threshold triggers it (value >= threshold).
 
     A threshold set to None is disabled. A missing value is UNKNOWN.
@@ -28,7 +28,7 @@ def threshold_status(value: Optional[float], warn: Optional[float], crit: Option
 
 def service_status(
     load_state: str, active_state: str, not_found: Status = Status.WARNING
-) -> Tuple[Status, str]:
+) -> tuple[Status, str]:
     """Classify a systemd unit from its LoadState and ActiveState."""
     if load_state == "not-found":
         return not_found, "unit not found"
@@ -55,21 +55,21 @@ def parse_port_spec(spec: str) -> PortSpec:
 
 
 def port_findings(
-    listening: Set[PortSpec], expected: Iterable[PortSpec], allowed: Optional[Iterable[PortSpec]]
-) -> Tuple[List[PortSpec], List[PortSpec]]:
+    listening: set[PortSpec], expected: Iterable[PortSpec], allowed: Iterable[PortSpec] | None
+) -> tuple[list[PortSpec], list[PortSpec]]:
     """Return (missing expected ports, listening ports outside the allow-list).
 
     allowed=None disables the allow-list. Expected ports are always allowed.
     """
     expected_set = set(expected)
     missing = sorted(expected_set - listening)
-    unexpected: List[PortSpec] = []
+    unexpected: list[PortSpec] = []
     if allowed is not None:
         unexpected = sorted(listening - set(allowed) - expected_set)
     return missing, unexpected
 
 
-def port_status(missing: List[PortSpec], unexpected: List[PortSpec]) -> Status:
+def port_status(missing: list[PortSpec], unexpected: list[PortSpec]) -> Status:
     """A missing expected service is critical; an extra open port is a warning."""
     if missing:
         return Status.CRITICAL
@@ -79,8 +79,8 @@ def port_status(missing: List[PortSpec], unexpected: List[PortSpec]) -> Status:
 
 
 def uptime_status(
-    uptime_seconds: float, recent_boot_warn_minutes: Optional[float], max_uptime_days: Optional[float]
-) -> Tuple[Status, Optional[str]]:
+    uptime_seconds: float, recent_boot_warn_minutes: float | None, max_uptime_days: float | None
+) -> tuple[Status, str | None]:
     """Warn on an unexpected recent reboot, or on an uptime long enough to
     suggest pending kernel updates. Both rules are optional (None disables)."""
     if recent_boot_warn_minutes is not None and uptime_seconds < recent_boot_warn_minutes * 60:

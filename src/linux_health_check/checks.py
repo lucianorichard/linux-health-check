@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable
 
 from .models import CheckResult
 from .parsers import (
@@ -35,11 +35,11 @@ from .status import Status, worst
 SUDO_HINT = "run with sudo for complete data"
 
 
-def _pct(part: float, whole: float) -> Optional[float]:
+def _pct(part: float, whole: float) -> float | None:
     return None if whole <= 0 else 100.0 * part / whole
 
 
-def _fmt_pct(value: Optional[float]) -> str:
+def _fmt_pct(value: float | None) -> str:
     return "n/a" if value is None else f"{value:.1f}%"
 
 
@@ -85,10 +85,14 @@ def check_cpu(source, cfg: dict) -> CheckResult:
     summary = f"usage {_fmt_pct(usage)}, load {per_core:.2f}/core (5m), {cores} cores"
     details = [f"load average 1m/5m/15m: {load1:.2f} {load5:.2f} {load15:.2f}"]
     if load_st is not Status.OK:
-        limit = cfg["load_per_core_crit"] if load_st is Status.CRITICAL else cfg["load_per_core_warn"]
-        details.append(f"5m load per core {per_core:.2f} reached {load_st.name.lower()} {limit:g}")
+        level = "crit" if load_st is Status.CRITICAL else "warn"
+        details.append(
+            f"5m load per core {per_core:.2f} ({level} {cfg[f'load_per_core_{level}']:.2f})"
+        )
     if usage_st is not Status.OK:
-        details.append(f"CPU usage {_fmt_pct(usage)}{_limit(usage_st, cfg['usage_warn'], cfg['usage_crit'])}")
+        details.append(
+            f"CPU usage {_fmt_pct(usage)}{_limit(usage_st, cfg['usage_warn'], cfg['usage_crit'])}"
+        )
     return CheckResult(
         "cpu",
         worst([usage_st, load_st]),
@@ -120,13 +124,17 @@ def check_memory(source, cfg: dict) -> CheckResult:
 
     swap_total = info.get("SwapTotal", 0)
     swap_used = _pct(swap_total - info.get("SwapFree", 0), swap_total)
-    swap_st = Status.OK if swap_used is None else threshold_status(
-        swap_used, cfg["swap_warn"], cfg["swap_crit"]
+    swap_st = (
+        Status.OK
+        if swap_used is None
+        else threshold_status(swap_used, cfg["swap_warn"], cfg["swap_crit"])
     )
 
     summary = f"used {_fmt_pct(used)}{_limit(mem_st, cfg['warn'], cfg['crit'])}"
-    swap_text = "no swap" if swap_used is None else (
-        f"swap {_fmt_pct(swap_used)}{_limit(swap_st, cfg['swap_warn'], cfg['swap_crit'])}"
+    swap_text = (
+        "no swap"
+        if swap_used is None
+        else (f"swap {_fmt_pct(swap_used)}{_limit(swap_st, cfg['swap_warn'], cfg['swap_crit'])}")
     )
     summary += f", {swap_text}"
     details = [f"available {available // 1024} MiB of {total // 1024} MiB"]
@@ -179,8 +187,10 @@ def check_disk(source, cfg: dict) -> CheckResult:
         space = _pct(used_blocks, used_blocks + st.bavail)
         inodes = _pct(st.files - st.ffree, st.files) if st.files else None
         space_st = threshold_status(space, cfg["space_warn"], cfg["space_crit"])
-        inode_st = Status.OK if inodes is None else threshold_status(
-            inodes, cfg["inode_warn"], cfg["inode_crit"]
+        inode_st = (
+            Status.OK
+            if inodes is None
+            else threshold_status(inodes, cfg["inode_warn"], cfg["inode_crit"])
         )
         statuses.append(worst([space_st, inode_st]))
         details.append(
@@ -188,16 +198,18 @@ def check_disk(source, cfg: dict) -> CheckResult:
             f"{_limit(space_st, cfg['space_warn'], cfg['space_crit'])}, inodes {_fmt_pct(inodes)}"
             f"{_limit(inode_st, cfg['inode_warn'], cfg['inode_crit'])}"
         )
-        mounts.append({
-            "mountpoint": mount.mountpoint,
-            "device": mount.device,
-            "fstype": mount.fstype,
-            "size_bytes": st.blocks * st.frsize,
-            "available_bytes": st.bavail * st.frsize,
-            "space_used_percent": None if space is None else round(space, 1),
-            "inodes_used_percent": None if inodes is None else round(inodes, 1),
-            "status": worst([space_st, inode_st]).name,
-        })
+        mounts.append(
+            {
+                "mountpoint": mount.mountpoint,
+                "device": mount.device,
+                "fstype": mount.fstype,
+                "size_bytes": st.blocks * st.frsize,
+                "available_bytes": st.bavail * st.frsize,
+                "space_used_percent": None if space is None else round(space, 1),
+                "inodes_used_percent": None if inodes is None else round(inodes, 1),
+                "status": worst([space_st, inode_st]).name,
+            }
+        )
 
     status = worst(statuses)
     if not mounts and not statuses:
@@ -212,12 +224,16 @@ def check_disk(source, cfg: dict) -> CheckResult:
 def check_services(source, cfg: dict) -> CheckResult:
     units = cfg["units"]
     if not units:
-        return CheckResult("services", Status.OK, "no services configured (use --service or config)")
+        return CheckResult(
+            "services", Status.OK, "no services configured (use --service or config)"
+        )
     not_found = Status[cfg["not_found"].upper()]
     statuses, details, metrics = [], [], {}
     for unit in units:
         props = source.systemctl_show(unit)
-        status, reason = service_status(props.get("LoadState", ""), props.get("ActiveState", ""), not_found)
+        status, reason = service_status(
+            props.get("LoadState", ""), props.get("ActiveState", ""), not_found
+        )
         sub = props.get("SubState")
         statuses.append(status)
         details.append(f"{unit}: {reason}" + (f" ({sub})" if sub and status is Status.OK else ""))
@@ -229,7 +245,7 @@ def check_services(source, cfg: dict) -> CheckResult:
     return CheckResult("services", worst(statuses), summary, details, {"units": metrics})
 
 
-def _fmt_port(spec: Tuple[int, str]) -> str:
+def _fmt_port(spec: tuple[int, str]) -> str:
     return f"{spec[0]}/{spec[1]}"
 
 
@@ -242,7 +258,7 @@ def check_ports(source, cfg: dict) -> CheckResult:
             continue  # e.g. IPv6 disabled
     owners, denied = source.socket_owners()
 
-    by_port: Dict[Tuple[int, str], List[str]] = defaultdict(list)
+    by_port: dict[tuple[int, str], list[str]] = defaultdict(list)
     unresolved = 0
     for lst in listeners:
         owner = owners.get(lst.inode)
@@ -250,7 +266,9 @@ def check_ports(source, cfg: dict) -> CheckResult:
             unresolved += 1
         by_port[(lst.port, lst.proto)].append(f"{lst.address} {owner or '?'}")
     if unresolved and denied:
-        notes.append(f"owner unknown for {unresolved} sockets; {denied} processes not readable; {SUDO_HINT}")
+        notes.append(
+            f"owner unknown for {unresolved} sockets; {denied} processes not readable; {SUDO_HINT}"
+        )
 
     expected = [parse_port_spec(p) for p in cfg["expected"]]
     allowed = None if cfg["allowed"] is None else [parse_port_spec(p) for p in cfg["allowed"]]
@@ -262,7 +280,10 @@ def check_ports(source, cfg: dict) -> CheckResult:
         summary += f"; missing: {', '.join(map(_fmt_port, missing))}"
     if unexpected:
         summary += f"; not allowed: {', '.join(map(_fmt_port, unexpected))}"
-    details = [f"{_fmt_port(spec)}: {', '.join(sorted(set(where)))}" for spec, where in sorted(by_port.items())]
+    details = [
+        f"{_fmt_port(spec)}: {', '.join(sorted(set(where)))}"
+        for spec, where in sorted(by_port.items())
+    ]
     metrics = {
         "listening": [
             {"port": port, "proto": proto, "bindings": sorted(set(where))}
@@ -289,7 +310,7 @@ def check_boot(source, cfg: dict) -> CheckResult:
     )
 
 
-CHECKS: Dict[str, Callable[..., CheckResult]] = {
+CHECKS: dict[str, Callable[..., CheckResult]] = {
     "cpu": check_cpu,
     "memory": check_memory,
     "disk": check_disk,
@@ -299,23 +320,27 @@ CHECKS: Dict[str, Callable[..., CheckResult]] = {
 }
 
 
-def run_checks(source, config: dict, names: List[str]) -> List[CheckResult]:
+def run_checks(source, config: dict, names: list[str]) -> list[CheckResult]:
     results = []
     for name in names:
         try:
             results.append(CHECKS[name](source, config[name]))
         except PermissionError as exc:
             what = exc.filename or "required data"
-            results.append(CheckResult(
-                name, Status.UNKNOWN, "permission denied",
-                notes=[f"cannot read {what}: permission denied; {SUDO_HINT}"],
-            ))
+            results.append(
+                CheckResult(
+                    name,
+                    Status.UNKNOWN,
+                    "permission denied",
+                    notes=[f"cannot read {what}: permission denied; {SUDO_HINT}"],
+                )
+            )
         except ToolUnavailable as exc:
             results.append(CheckResult(name, Status.UNKNOWN, f"cannot run: {exc}"))
         except (OSError, ValueError, KeyError) as exc:
             results.append(CheckResult(name, Status.UNKNOWN, f"could not collect data: {exc}"))
         except Exception as exc:  # a bug in one check must not hide the others
-            results.append(CheckResult(
-                name, Status.UNKNOWN, f"internal error: {type(exc).__name__}: {exc}"
-            ))
+            results.append(
+                CheckResult(name, Status.UNKNOWN, f"internal error: {type(exc).__name__}: {exc}")
+            )
     return results

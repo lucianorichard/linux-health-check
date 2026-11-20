@@ -1,0 +1,5 @@
+{
+  "ssh.service": {"LoadState": "loaded", "ActiveState": "active", "SubState": "running"},
+  "cron.service": {"LoadState": "loaded", "ActiveState": "active", "SubState": "running"},
+  "nginx.service": {"LoadState": "loaded", "ActiveState": "active", "SubState": "running"}
+}

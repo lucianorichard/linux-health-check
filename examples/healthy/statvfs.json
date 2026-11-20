@@ -1,0 +1,5 @@
+{
+  "/": {"blocks": 10000000, "bfree": 6000000, "bavail": 5500000, "frsize": 4096, "files": 1000000, "ffree": 800000},
+  "/home": {"blocks": 50000000, "bfree": 25000000, "bavail": 22500000, "frsize": 4096, "files": 6000000, "ffree": 5700000},
+  "/mnt/backup disk": {"blocks": 100000000, "bfree": 70000000, "bavail": 70000000, "frsize": 4096, "files": 0, "ffree": 0}
+}

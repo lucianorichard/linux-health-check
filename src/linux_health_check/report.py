@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import List, Optional
 
 from . import __version__
 from .models import CheckResult
@@ -27,7 +26,7 @@ class Report:
     hostname: str
     kernel: str
     generated_at: datetime
-    checks: List[CheckResult]
+    checks: list[CheckResult]
 
     @property
     def overall(self) -> Status:
@@ -45,7 +44,7 @@ def _first_line(source, path: str) -> str:
         return "unknown"
 
 
-def build_report(source, checks: List[CheckResult], now: Optional[datetime] = None) -> Report:
+def build_report(source, checks: list[CheckResult], now: datetime | None = None) -> Report:
     return Report(
         hostname=_first_line(source, "/proc/sys/kernel/hostname"),
         kernel=_first_line(source, "/proc/sys/kernel/osrelease"),
@@ -77,7 +76,11 @@ def _paint(status: Status, text: str, color: bool) -> str:
 def render_quiet(report: Report) -> str:
     """One line, monitoring-plugin style: 'WARNING: disk: ...; services: ...'."""
     problems = [f"{c.name}: {c.summary}" for c in report.checks if c.status is not Status.OK]
-    return f"{report.overall.name}: " + ("; ".join(problems) if problems else "all checks passed") + "\n"
+    return (
+        f"{report.overall.name}: "
+        + ("; ".join(problems) if problems else "all checks passed")
+        + "\n"
+    )
 
 
 def render_text(report: Report, color: bool = False) -> str:

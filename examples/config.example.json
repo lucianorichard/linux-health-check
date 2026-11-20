@@ -1,0 +1,8 @@
+{
+  "cpu": {"usage_warn": 85, "usage_crit": 95, "load_per_core_warn": 1.0, "load_per_core_crit": 2.0},
+  "memory": {"warn": 85, "crit": 95, "swap_warn": 50, "swap_crit": 80},
+  "disk": {"space_warn": 80, "space_crit": 90, "inode_warn": 80, "inode_crit": 90},
+  "services": {"units": ["ssh.service", "cron.service", "nginx.service"], "not_found": "warning"},
+  "ports": {"expected": ["22/tcp", "443/tcp"], "allowed": ["5432/tcp", "123/udp"]},
+  "boot": {"recent_boot_warn_minutes": 15, "max_uptime_days": 90}
+}

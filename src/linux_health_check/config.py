@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import copy
 import json
-from typing import Any, Optional
+from typing import Any
 
 from .rules import parse_port_spec
 
@@ -27,10 +27,32 @@ DEFAULTS: dict = {
         "inode_warn": 80,
         "inode_crit": 90,
         "exclude_fstypes": [
-            "autofs", "binfmt_misc", "bpf", "cgroup", "cgroup2", "configfs", "debugfs",
-            "devpts", "devtmpfs", "efivarfs", "fusectl", "hugetlbfs", "mqueue", "nsfs",
-            "overlay", "proc", "pstore", "ramfs", "rpc_pipefs", "securityfs", "squashfs",
-            "sysfs", "tmpfs", "tracefs", "fuse.portal", "fuse.gvfsd-fuse",
+            "autofs",
+            "binfmt_misc",
+            "bpf",
+            "cgroup",
+            "cgroup2",
+            "configfs",
+            "debugfs",
+            "devpts",
+            "devtmpfs",
+            "efivarfs",
+            "fusectl",
+            "hugetlbfs",
+            "mqueue",
+            "nsfs",
+            "overlay",
+            "proc",
+            "pstore",
+            "ramfs",
+            "rpc_pipefs",
+            "securityfs",
+            "squashfs",
+            "sysfs",
+            "tmpfs",
+            "tracefs",
+            "fuse.portal",
+            "fuse.gvfsd-fuse",
         ],
         "exclude_mount_prefixes": ["/snap/", "/var/lib/docker/", "/var/lib/containers/"],
     },
@@ -89,7 +111,9 @@ def validate(cfg: dict) -> None:
                 raise ConfigError(f"'{name}' must be at most {maximum}")
             values[key] = value
         if len(values) == 2 and values[warn_key] > values[crit_key]:
-            raise ConfigError(f"'{section}.{warn_key}' must not be greater than '{section}.{crit_key}'")
+            raise ConfigError(
+                f"'{section}.{warn_key}' must not be greater than '{section}.{crit_key}'"
+            )
 
     sample = cfg["cpu"]["sample_seconds"]
     if not _is_number(sample) or not 0 <= sample <= 10:
@@ -117,7 +141,7 @@ def validate(cfg: dict) -> None:
             raise ConfigError(f"'boot.{key}' must be a positive number or null")
 
 
-def load_config(path: Optional[str] = None) -> dict:
+def load_config(path: str | None = None) -> dict:
     """Return the defaults, overridden by the JSON file at path if given."""
     cfg = copy.deepcopy(DEFAULTS)
     if path:

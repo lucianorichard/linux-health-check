@@ -13,7 +13,6 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Tuple
 
 from .parsers import parse_key_values
 
@@ -48,7 +47,7 @@ class LiveSource:
         st = os.statvfs(mountpoint)
         return FsStats(st.f_blocks, st.f_bfree, st.f_bavail, st.f_frsize, st.f_files, st.f_ffree)
 
-    def systemctl_show(self, unit: str) -> Dict[str, str]:
+    def systemctl_show(self, unit: str) -> dict[str, str]:
         cmd = ["systemctl", "show", "--property=" + ",".join(SYSTEMCTL_PROPERTIES), "--", unit]
         try:
             proc = subprocess.run(
@@ -63,13 +62,13 @@ class LiveSource:
             raise ToolUnavailable(proc.stderr.strip() or f"systemctl exited with {proc.returncode}")
         return parse_key_values(proc.stdout)
 
-    def socket_owners(self) -> Tuple[Dict[int, str], int]:
+    def socket_owners(self) -> tuple[dict[int, str], int]:
         """Map socket inode -> "name(pid)" by scanning /proc/<pid>/fd.
 
         Returns the map and how many processes could not be inspected because
         they belong to another user (reading their fds requires root).
         """
-        owners: Dict[int, str] = {}
+        owners: dict[int, str] = {}
         denied = 0
         for pid_dir in Path("/proc").iterdir():
             if not pid_dir.name.isdigit():
@@ -115,7 +114,7 @@ class FixtureSource:
         self.root = Path(root)
         if not self.root.is_dir():
             raise FileNotFoundError(f"fixture directory not found: {root}")
-        self._reads: Dict[str, int] = {}
+        self._reads: dict[str, int] = {}
 
     def _json(self, name: str, default):
         path = self.root / name
@@ -140,13 +139,13 @@ class FixtureSource:
             raise PermissionError(13, "Permission denied", mountpoint)
         return FsStats(**entry)
 
-    def systemctl_show(self, unit: str) -> Dict[str, str]:
+    def systemctl_show(self, unit: str) -> dict[str, str]:
         units = self._json("systemd.json", None)
         if units is None:
             raise ToolUnavailable("fixture has no systemd.json")
         return units.get(unit, {"LoadState": "not-found", "ActiveState": "inactive"})
 
-    def socket_owners(self) -> Tuple[Dict[int, str], int]:
+    def socket_owners(self) -> tuple[dict[int, str], int]:
         data = self._json("sockets.json", {})
         owners = {int(inode): name for inode, name in data.get("owners", {}).items()}
         return owners, int(data.get("denied_processes", 0))
