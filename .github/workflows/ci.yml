@@ -11,26 +11,28 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Official images keep every supported Python (3.9 is the default on RHEL 9),
+    # and a container without systemd also exercises the UNKNOWN path.
+    container: python:${{ matrix.python-version }}-slim
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Install
-        run: python -m pip install .
+        run: python -m pip install --root-user-action=ignore .
       - name: Unit and CLI tests
         run: python -m unittest discover -s tests -t . -v
       - name: Sample systems give the documented exit codes
+        shell: bash
         run: |
           linux-health-check -c examples/config.example.json --fixture examples/healthy --no-color
           set +e
           linux-health-check -c examples/config.example.json --fixture examples/degraded --no-color
           test $? -eq 2
-      - name: Smoke test on the runner itself (any status is fine, only crashes fail)
+      - name: Smoke test on the live container (any status is fine, only crashes fail)
+        shell: bash
         run: |
           set +e
           linux-health-check -s ssh.service -p 22 --json > report.json

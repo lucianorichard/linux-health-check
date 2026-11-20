@@ -242,8 +242,9 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t .   # 97 tests, about 0.
 pipx run ruff check . && pipx run ruff format --check .     # lint and formatting
 ```
 
-CI runs the tests on Python 3.9 to 3.13, lints the code, and runs the tool against the
-GitHub runner itself as a smoke test.
+CI runs the tests on Python 3.9 to 3.13 (inside the official `python` images), lints the
+code, and runs the tool live inside the container as a smoke test. The container has no
+systemd, so that run also exercises the UNKNOWN path of the service check.
 
 ## License
 
