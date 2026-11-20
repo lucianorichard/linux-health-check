@@ -16,41 +16,20 @@ pipelines or an existing Nagios/Icinga setup.
 - Read-only: it never changes system configuration.
 - Runs as a normal user and tells you when a check needs root to be complete.
 
-```text
-$ linux-health-check -c examples/config.example.json --fixture examples/degraded
-Linux Health Check 0.1.0
-Host: db02.example.com (kernel 6.1.0-27-amd64)  Generated: 2026-11-20 01:43:06 UTC
+![Degraded server report](docs/screenshots/degraded.png)
 
-[CRIT] cpu       usage 96.0%, load 1.73/core (5m), 4 cores
-                 load average 1m/5m/15m: 7.80 6.90 5.10
-                 5m load per core 1.73 (warn 1.00)
-                 CPU usage 96.0% (crit 95%)
-[WARN] memory    used 88.0% (warn 85%), swap 70.0% (warn 50%)
-                 available 1875 MiB of 15625 MiB
-[CRIT] disk      2 filesystems checked; attention: /, /var
-                 / (ext4): space 63.2%, inodes 85.0% (warn 80%)
-                 /var (xfs): space 93.0% (crit 90%), inodes 20.0%
-                 /mnt/secure: permission denied
-[CRIT] services  2/3 healthy; problems: nginx.service
-                 ssh.service: active (running)
-                 cron.service: active (running)
-                 nginx.service: failed
-[CRIT] ports     4 listening ports; missing: 443/tcp; not allowed: 8080/tcp
-                 22/tcp: 0.0.0.0 sshd(812)
-                 123/udp: 0.0.0.0 ?
-                 5432/tcp: 127.0.0.1 postgres(901)
-                 8080/tcp: 0.0.0.0 ?
-[WARN] boot      last boot 2026-11-18 11:06 UTC, up 7m
-                 rebooted less than 15 minutes ago
+## Screenshots
 
-Notes:
-  - disk: cannot stat /mnt/secure: permission denied; run with sudo for complete data
-  - ports: owner unknown for 2 sockets; 3 processes not readable; run with sudo for complete data
+These are real runs against the two sample systems bundled in [`examples/`](examples/), so
+you can reproduce them on any machine with `--fixture`.
 
-Overall: CRITICAL (exit code 2)
-```
+**Healthy server: every check passes, exit code 0**
 
-That output comes from a bundled sample system, so you can reproduce it on any machine.
+![Healthy server report](docs/screenshots/healthy.png)
+
+**Automation: one-line output for cron, exit codes, and the JSON report**
+
+![Quiet mode, exit codes and JSON export](docs/screenshots/automation.png)
 
 ## What it checks
 
@@ -187,6 +166,7 @@ src/linux_health_check/
   report.py    report model, text / quiet / JSON rendering
   cli.py       argument parsing and exit codes
 examples/      two sample systems (healthy, degraded), example config and reports
+docs/          screenshots used in this README
 tests/         unit tests for parsers, rules, config and checks; end-to-end CLI tests
 ```
 
